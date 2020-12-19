@@ -11,3 +11,5 @@ Automatic submit daily health data
 不用邮件的操作流程
 ![不用邮件](https://github.com/Windmill-City/AutoHealthSubmit/blob/main/不用邮件.png)
 ![编辑](https://github.com/Windmill-City/AutoHealthSubmit/blob/main/编辑.png)
+# 参考文献
+https://github.com/Saujyun/AutoAction
