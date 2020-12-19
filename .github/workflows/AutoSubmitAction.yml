@@ -31,4 +31,3 @@ jobs:
           USERID: ${{ secrets.USERID }}
           USERPASS: ${{ secrets.USERPASS }}
         run: python AutoHealthSubmit.py
-      
