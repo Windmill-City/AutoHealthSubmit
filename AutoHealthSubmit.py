@@ -38,13 +38,13 @@ def submit(chrome):
     WebDriverWait(chrome, 60, 0.5).until(ec.staleness_of(ele))
 
 
-def is_completed(chrome):
+def is_complete(chrome):
     current_page_url = chrome.current_url
     logger.debug(current_page_url)
     return "complete" in current_page_url
 
 
-def is_logined(chrome):
+def is_login(chrome):
     current_page_url = chrome.current_url
     logger.debug(current_page_url)
     return "complete" in current_page_url or "index" in current_page_url
@@ -60,21 +60,35 @@ def get_chrome_driver():
     return webdriver.Chrome(options=options)
 
 
+def set_geo_location(chrome):
+    import random
+    map_coordinates = dict({
+        "latitude": round(22.2522701 + random.random(), 7),
+        "longitude": round(113.5296717 + random.random(), 7),
+        "accuracy": random.randint(500, 3000)
+    })
+    chrome.execute_cdp_cmd("Emulation.setGeolocationOverride", map_coordinates)
+
+
 def save_for(file, message):
     with open(file + ".txt", 'a+', encoding="utf-8") as email:
         email.write(message + '\n')
         email.flush()
         email.close()
 
+
 def save_for_mail_body(message):
     save_for("body", message)
+
 
 def save_for_mail_subject(message):
     save_for("subject", message)
 
-driver = get_chrome_driver()
+
+driver = webdriver.Chrome()
 driver.set_page_load_timeout(60)
 driver.implicitly_wait(10)
+set_geo_location(driver)
 
 usr_id = os.getenv("USERID")
 usr_pwd = os.getenv("USERPASS")
@@ -83,10 +97,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("Health Submit")
 try:
     login(driver, usr_id, usr_pwd)
-    if is_logined(driver):
-        if not is_completed(driver):
+    if is_login(driver):
+        if not is_complete(driver):
             submit(driver)
-        if is_completed(driver):
+        if is_complete(driver):
             completed = True
             save_for_mail_body("Completed!")
 except Exception as e:
