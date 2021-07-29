@@ -54,9 +54,6 @@ def get_chrome_driver():
     from selenium import webdriver
     options = webdriver.ChromeOptions()
     options.add_argument("headless")
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-gpu')
-    options.add_argument('--disable-dev-shm-usage')
     return webdriver.Chrome(options=options)
 
 
@@ -68,6 +65,41 @@ def set_geo_location(chrome):
         "accuracy": random.randint(500, 3000)
     })
     chrome.execute_cdp_cmd("Emulation.setGeolocationOverride", map_coordinates)
+    driver.execute_cdp_cmd(
+        "Browser.grantPermissions",
+        {
+            "origin": "https://stuhealth.jnu.edu.cn",
+            "permissions": ["geolocation"]
+        },
+    )
+
+
+def log_get_location(chrome, logger_):
+    chrome.execute_script("""
+        var options = {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        };
+        
+        function success(pos) {
+          var crd = pos.coords;
+        
+          console.warn('Your current position is:');
+          console.warn('Latitude : ' + crd.latitude);
+          console.warn('Longitude: ' + crd.longitude);
+          console.warn('More or less ' + crd.accuracy + ' meters.');
+        };
+        
+        function error(err) {
+          console.warn('ERROR(' + err.code + '): ' + err.message);
+        };
+        
+        navigator.geolocation.getCurrentPosition(success, error, options);
+        """)
+    # print messages
+    for entry in chrome.get_log('browser'):
+        logger_.info(entry)
 
 
 def save_for(file, message):
@@ -85,7 +117,7 @@ def save_for_mail_subject(message):
     save_for("subject", message)
 
 
-driver = webdriver.Chrome()
+driver = get_chrome_driver()
 driver.set_page_load_timeout(60)
 driver.implicitly_wait(10)
 set_geo_location(driver)
@@ -95,9 +127,11 @@ usr_pwd = os.getenv("USERPASS")
 completed = False
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("Health Submit")
+
 try:
     login(driver, usr_id, usr_pwd)
     if is_login(driver):
+        log_get_location(driver, logger)
         if not is_complete(driver):
             submit(driver)
         if is_complete(driver):
