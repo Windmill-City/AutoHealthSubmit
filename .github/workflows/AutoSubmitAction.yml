@@ -11,33 +11,18 @@ jobs:
   # when a job name is not provided
   submit:
     # Name the Job
-    name: Submit Health Data
+    name: Notify Health Submit
     # Set the type of machine to run on
     runs-on: ubuntu-latest
 
     steps:
-      # Checks out a copy of your repository on the ubuntu-latest machine
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: 'Set up Python'
-        uses: actions/setup-python@v1
-        with:
-          python-version: '3.7'
-      - uses: nanasess/setup-chromedriver@master
-      - name: 'Install requirements'
-        run: pip install selenium
-      - name: 'Submit'
-        env:
-          USERID: ${{ secrets.USERID }}
-          USERPASS: ${{ secrets.USERPASS }}
-        run: python AutoHealthSubmit.py
       - name: 'Send mail'
         if: always()
         uses: Windmill-City/action-send-mail@master
         with:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: file://subject.txt
-          body: file://body.txt
+          subject: "Health Submit:健康打卡"
+          body: ""
           to: ${{ secrets.MAIL_RESULT }}
           from: AutoHealthSubmit
